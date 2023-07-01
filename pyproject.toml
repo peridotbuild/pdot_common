@@ -1,0 +1,23 @@
+[project]
+name = "pdot_common"
+version = "0.0.1"
+description = "Common Python library for Peridot projects"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi >= 0.99.0",
+    "authlib >= 1.2.1",
+    "httpx >= 0.24.1",
+]
+authors = [
+    { name = "Mustafa Gezen", email = "mustafa@rockylinux.org" }
+]
+maintainers = [
+    { name = "Mustafa Gezen", email = "mustafa@rockylinux.org" }
+]
+
+[project.license]
+file = "LICENSE"
+
+[tool.setuptools]
+package-dir = { "pdot_common" = "pdot_common" }
