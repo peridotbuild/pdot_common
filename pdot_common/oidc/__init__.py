@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import httpx
 
@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 @dataclass
 class OIDCConfig:
     userinfo_endpoint: str
+    required_groups: list[str] = field(default_factory=list)
 
 
 def add_oidc_middleware(app: FastAPI, config: OIDCConfig):
@@ -64,6 +65,21 @@ def add_oidc_middleware(app: FastAPI, config: OIDCConfig):
                     status_code=401,
                     content={"detail": "Invalid token"},
                 )
+
+            if config.required_groups:
+                if not userinfo.get("groups"):
+                    return JSONResponse(
+                        status_code=401,
+                        content={"detail": "User does not have any groups"},
+                    )
+
+                if not any(
+                    group in userinfo["groups"] for group in config.required_groups
+                ):
+                    return JSONResponse(
+                        status_code=401,
+                        content={"detail": "User does not have required groups"},
+                    )
 
             request.state.userinfo = userinfo
 
