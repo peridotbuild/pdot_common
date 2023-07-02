@@ -5,9 +5,12 @@ description = "Common Python library for Peridot projects"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "fastapi >= 0.99.0",
-    "authlib >= 1.2.1",
-    "httpx >= 0.24.1",
+    "fastapi == 0.99.0",
+    "fastapi-pagination == 0.12.5",
+    "authlib == 1.2.1",
+    "httpx == 0.24.1",
+    "tortoise-orm[asyncpg] == 0.19.3",
+    "temporalio == 1.2.0"
 ]
 authors = [
     { name = "Mustafa Gezen", email = "mustafa@rockylinux.org" }

@@ -10,11 +10,23 @@ from fastapi.responses import JSONResponse
 class OIDCConfig:
     userinfo_endpoint: str
     required_groups: list[str] = field(default_factory=list)
+    exclude_paths: list[str] = field(default_factory=list)
+    exclude_paths_prefix: list[str] = field(default_factory=list)
 
 
 def add_oidc_middleware(app: FastAPI, config: OIDCConfig):
     @app.middleware("http")
     async def verify_oidc_auth(request: Request, call_next):
+        # If path is in exclude_paths, skip OIDC verification
+        if request.url.path in config.exclude_paths:
+            return await call_next(request)
+
+        # If path starts with any of the exclude_paths_prefix,
+        # skip OIDC verification
+        for prefix in config.exclude_paths_prefix:
+            if request.url.path.startswith(prefix):
+                return await call_next(request)
+
         # First verify that there is an Authorization header
         auth_header = request.headers.get("Authorization")
         if not auth_header:
@@ -69,16 +81,18 @@ def add_oidc_middleware(app: FastAPI, config: OIDCConfig):
             if config.required_groups:
                 if not userinfo.get("groups"):
                     return JSONResponse(
-                        status_code=401,
+                        status_code=403,
                         content={"detail": "User does not have any groups"},
                     )
 
-                if not any(
-                    group in userinfo["groups"] for group in config.required_groups
-                ):
+                required_groups = set(config.required_groups)
+                has_group = any(
+                    group in userinfo["groups"] for group in required_groups
+                )
+                if not has_group:
                     return JSONResponse(
-                        status_code=401,
-                        content={"detail": "User does not have required groups"},
+                        status_code=403,
+                        content={"detail": "User not authorized"},
                     )
 
             request.state.userinfo = userinfo
